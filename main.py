@@ -1,8 +1,11 @@
+import fnmatch
+
 import wmi
 import ctypes
 import atexit
 
-from PyQt5.QtWidgets import QDialog
+from PyQt5 import QtGui
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem
 from PyQt5.QtCore import Qt
 
@@ -26,33 +29,45 @@ class MainAppWindow(QMainWindow):
             #self.ui.createDB.clicked.connect(create_default_db_structure)
             #self.ui.dropDB.clicked.connect(drop_db)
             #self.ui.pushButton.pressed.connect(lambda: table_loader(self.ui.tableWidget))
-            self.ui.pushButton.pressed.connect(lambda: show_add_processes_gui(self))
-
+            self.ui.pushButton.clicked.connect(lambda: show_add_processes_gui(self))
 
         except Exception as ex:
             print_exception(ex)
 
 
 class AddProc(QDialog):
-    def __init__(self):
+    def __init__(self, parent=None):
         try:
-            super().__init__()
+            super(AddProc, self).__init__(parent=parent)
             self.ui = Ui_dialogAddProc()
             self.ui.setupUi(self)
-            self.show()
 
-            self.ui.tableProc.setColumnWidth(0, 20)
-            self.ui.tableProc.setColumnWidth(1, 40)
-            self.ui.tableProc.setColumnWidth(2, 20)
+            self.ui.buttonBox.button(QDialogButtonBox.Ok).clicked.connect(lambda: close_add_processes_gui(self))
 
         except Exception as ex:
             print_exception(ex)
 
 
+def close_add_processes_gui(maingui):
+    try:
+        qtable = maingui.ui.tableProc
+
+        for i in range(0, qtable.rowCount()):
+            chkboxitem = qtable.item(i, 0)
+
+            if chkboxitem.checkState() == 2:
+                print(qtable.item(i, 1).text())
+
+    except Exception as ex:
+        print_exception(ex)
+
+
 def show_add_processes_gui(maingui):
     try:
+
         maingui.dialogAddProc = AddProc()
-        maingui.dialogAddProc.show()
+
+
 
         qtable = maingui.dialogAddProc.ui.tableProc
 
@@ -68,10 +83,6 @@ def show_add_processes_gui(maingui):
         qtable.setColumnWidth(0, 20)
         qtable.setColumnWidth(1, 100)
         qtable.setColumnWidth(2, 500)
-
-        print("SET 1")
-        print(process_list[0].split(" | "))
-        print("Anzahl Proc: " + str(num_processes))
 
         for r in range(0, num_processes):
             processname = QTableWidgetItem()
@@ -90,7 +101,7 @@ def show_add_processes_gui(maingui):
 
             qtable.setItem(r, 0, chkboxitem)
 
-
+        maingui.dialogAddProc.exec_()
 
     except Exception as ex:
         print_exception(ex)
@@ -143,7 +154,7 @@ def get_process_list():
         for p in c.query(sql_query):
             exe += p.Name + " | " + p.ExecutablePath + "\n"
 
-        print("\n".join(sorted(set(exe.split("\n")))))
+        #print("\n".join(sorted(set(exe.split("\n")))))
         return "\n".join(sorted(set(exe.split("\n"))))
     except Exception as ex:
         print_exception(ex)
