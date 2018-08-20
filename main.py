@@ -41,7 +41,6 @@ class AddProc(QDialog):
             self.ui.setupUi(self)
             self.show()
 
-
             self.ui.tableProc.setColumnWidth(0, 20)
             self.ui.tableProc.setColumnWidth(1, 40)
             self.ui.tableProc.setColumnWidth(2, 20)
