@@ -1,3 +1,4 @@
+import linecache
 import sqlite3
 import os
 from PyQt5.QtWidgets import QDialog, QApplication
@@ -28,6 +29,7 @@ class AppWindow(QDialog):
 def open_connection():
     try:
         connection = sqlite3.connect(DB_FILE_NAME)
+        connection.isolation_level = None
         return connection
     except Exception as ex:
         print_exception(ex)
@@ -68,6 +70,39 @@ def drop_db():
         print_exception(ex)
 
 
+def save_data_to_db(data):
+    try:
+        print("save_data_to_db")
+        listsize = len(data)
+
+        connection = open_connection()
+        c = connection.cursor()
+
+        for i in range(0, listsize):
+            #sqlquery = "SELECT * FROM settings WHERE processname = \"" + data[i] + "\""
+            sqlquery = '''SELECT COUNT(processname) AS processname FROM settings WHERE processname = "firefox.exe"'''
+
+            print("SQLQUERY: " + sqlquery)
+
+            print("iteration: " + str(i))
+
+            c.execute(sqlquery)
+            connection.commit()
+
+            result = c.fetchall()
+            processcount = result[0][0]
+
+            if processcount == 0:
+                sqlquery = '''INSERT INTO settings VALUES ("firefox.exe","C:\path_to_firefox",10,1)'''
+
+                c.execute(sqlquery)
+                connection.commit()
+
+        connection.close()
+
+    except Exception as ex:
+        print_exception(ex)
+
 def print_exception(ex):
     exc_type, exc_obj, tb = sys.exc_info()
     f = tb.tb_frame
@@ -83,16 +118,10 @@ def print_exception(ex):
                                                                                                  exc_obj),
                       style=(messagebox.MB_ICONERROR | messagebox.MB_TASKMODAL | messagebox.MB_OK), title="Exception")
 
-app = QApplication(sys.argv)
-w = AppWindow()
-w.show()
-sys.exit(app.exec_())
 
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    w = AppWindow()
+    w.show()
+    sys.exit(app.exec_())
 
-
-
-# try:
-# except Exception as ex:
-#       template = "An exception of type {0} occurred. Arguments:\n{1!r}"
-#       message = template.format(type(ex).__name__, ex.args)
-#       messagebox.MsgBox(message, style=(messagebox.MB_ICONERROR | messagebox.MB_OK), title="Exception")

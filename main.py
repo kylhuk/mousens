@@ -14,6 +14,7 @@ from AddProc import Ui_dialogAddProc
 import sys
 import messagebox
 import linecache
+import dbhandler
 
 
 c = wmi.WMI()
@@ -35,6 +36,7 @@ class MainAppWindow(QMainWindow):
             print_exception(ex)
 
 
+
 class AddProc(QDialog):
     def __init__(self, parent=None):
         try:
@@ -48,15 +50,24 @@ class AddProc(QDialog):
             print_exception(ex)
 
 
+def save_process_data(data):
+    print("add_items_to_settings_table")
+    dbhandler.save_data_to_db(data)
+
+
 def close_add_processes_gui(maingui):
     try:
         qtable = maingui.ui.tableProc
+        processes = []
 
         for i in range(0, qtable.rowCount()):
             chkboxitem = qtable.item(i, 0)
 
             if chkboxitem.checkState() == 2:
                 print(qtable.item(i, 1).text())
+                processes.append(qtable.item(i, 1).text())
+
+                dbhandler.save_data_to_db(processes)
 
     except Exception as ex:
         print_exception(ex)
@@ -66,8 +77,6 @@ def show_add_processes_gui(maingui):
     try:
 
         maingui.dialogAddProc = AddProc()
-
-
 
         qtable = maingui.dialogAddProc.ui.tableProc
 
@@ -198,17 +207,24 @@ def print_exception(ex):
                       style=(messagebox.MB_ICONERROR | messagebox.MB_TASKMODAL | messagebox.MB_OK), title="Exception")
 
 
-standard_speed = get_current_speed()
-print("CURRENT SPEED: " + str(get_current_speed()))
+if __name__ == "__main__":
+    standard_speed = get_current_speed()
+    print("CURRENT SPEED: " + str(get_current_speed()))
 
-atexit.register(proper_close)
+    atexit.register(proper_close)
 
-#get_process_list()
+    #get_process_list()
 
-app = QApplication(sys.argv)
-w = MainAppWindow()
-w.show()
-sys.exit(app.exec_())
+    app = QApplication(sys.argv)
+    w = MainAppWindow()
+    w.show()
+    sys.exit(app.exec_())
+
+
+
+
+
+
 
 # while True:
 #     _, pid = win32process.GetWindowThreadProcessId(win32gui.GetForegroundWindow())
