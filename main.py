@@ -51,11 +51,21 @@ class AddProc(QDialog):
 
 
 def save_process_data(data):
+    """
+
+    @param data:
+    @return:
+    """
     print("add_items_to_settings_table")
     dbhandler.save_data_to_db(data)
 
 
 def close_add_processes_gui(maingui):
+    """
+
+    @param maingui:
+    @return:
+    """
     try:
         qtable = maingui.ui.tableProc
         processes = []
@@ -74,6 +84,11 @@ def close_add_processes_gui(maingui):
 
 
 def show_add_processes_gui(maingui):
+    """
+
+    @param maingui:
+    @return:
+    """
     try:
 
         maingui.dialogAddProc = AddProc()
@@ -124,6 +139,11 @@ def save_data():
 
 
 def change_speed(speed):
+    """
+
+    :param speed:
+    :return:
+    """
     try:
         #   1 - slow
         #   10 - standard
@@ -136,6 +156,10 @@ def change_speed(speed):
 
 
 def get_current_speed():
+    """
+    Queries the Windows operating system for the current mouse speed settings
+    :return:
+    """
     try:
         get_mouse_speed = 112   # 0x0070 for SPI_GETMOUSESPEED
         speed = ctypes.c_int()
@@ -148,6 +172,10 @@ def get_current_speed():
 
 
 def proper_close():
+    """
+    Closes the application gracefully and resetting changed Windows settings
+    @return: None
+    """
     try:
         change_speed(standard_speed)
         print("PROGRAMM BEENDET")
@@ -156,6 +184,10 @@ def proper_close():
 
 
 def get_process_list():
+    """
+    Queries the WMI to get all the running processes w/o those containing "Windows" inside the path
+    @return: list
+    """
     try:
         sql_query = """SELECT Name, ExecutablePath FROM Win32_Process WHERE ExecutablePath IS NOT NULL 
                         AND NOT ExecutablePath LIKE '%Windows%'"""
@@ -170,6 +202,11 @@ def get_process_list():
 
 
 def table_loader(qtable):
+    """
+    Responsible for loading data into the QTableWidget
+    @param qtable: QTableWidget
+    @return: None
+    """
     try:
 
         qtable.setColumnCount(3)
@@ -194,6 +231,12 @@ def table_loader(qtable):
 
 
 def print_exception(ex):
+    """
+    Gathers all the necessary debug information and generates a MsgBox
+    :param ex: The exception object
+    :type ex: Exception
+    :return: None
+    """
     exc_type, exc_obj, tb = sys.exc_info()
     f = tb.tb_frame
     lineno = tb.tb_lineno
@@ -208,6 +251,9 @@ def print_exception(ex):
 
 
 if __name__ == "__main__":
+    """
+    Main routine
+    """
     standard_speed = get_current_speed()
     print("CURRENT SPEED: " + str(get_current_speed()))
 
