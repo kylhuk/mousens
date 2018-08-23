@@ -57,6 +57,15 @@ class Ui_MainWindow(object):
         self.buttonBox.setGeometry(QtCore.QRect(440, 390, 156, 23))
         self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
+        self.pbDebug = QtWidgets.QPushButton(self.centralWidget)
+        self.pbDebug.setEnabled(True)
+        self.pbDebug.setGeometry(QtCore.QRect(0, 414, 16, 16))
+        self.pbDebug.setMaximumSize(QtCore.QSize(16777213, 16777210))
+        font = QtGui.QFont()
+        font.setFamily("Calibri")
+        self.pbDebug.setFont(font)
+        self.pbDebug.setFlat(False)
+        self.pbDebug.setObjectName("pbDebug")
         MainWindow.setCentralWidget(self.centralWidget)
 
         self.retranslateUi(MainWindow)
@@ -71,4 +80,5 @@ class Ui_MainWindow(object):
         self.groupBox_2.setTitle(_translate("MainWindow", "Settings"))
         self.checkBox.setText(_translate("MainWindow", "Autostart"))
         self.label.setText(_translate("MainWindow", "Interval:"))
+        self.pbDebug.setText(_translate("MainWindow", "π"))
 

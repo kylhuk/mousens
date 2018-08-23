@@ -1,3 +1,13 @@
+# /==============================================.=====================================================================\
+# |  Filename:  main.py                          |   Created at:  2018-08-01                                           |
+# |----------------------------------------------'---------------------------------------------------------------------|
+# |  Project:        mousens                                                                                           |
+# |  Author:         https://github.com/kylhuk                                                                         |
+# |  Last updated:   August 2018                                                                                       |
+# |  License:        GNU GPLv3                                                                                         |
+# |                                                                                                                    |
+# \====================================================================================================================/
+
 import fnmatch
 
 import wmi
@@ -11,11 +21,12 @@ from PyQt5.QtCore import Qt
 
 from MainWindow import Ui_MainWindow
 from AddProc import Ui_dialogAddProc
+from DebugGui import Ui_Dialog
 import sys
 import messagebox
 import linecache
 import dbhandler
-
+import constants as C
 
 c = wmi.WMI()
 
@@ -26,15 +37,24 @@ class MainAppWindow(QMainWindow):
             super().__init__()
             self.ui = Ui_MainWindow()
             self.ui.setupUi(self)
-            self.show()
-            #self.ui.createDB.clicked.connect(create_default_db_structure)
-            #self.ui.dropDB.clicked.connect(drop_db)
-            #self.ui.pushButton.pressed.connect(lambda: table_loader(self.ui.tableWidget))
-            self.ui.pushButton.clicked.connect(lambda: show_add_processes_gui(self))
 
+            # self.ui.createDB.clicked.connect(create_default_db_structure)
+            # self.ui.dropDB.clicked.connect(drop_db)
+            # self.ui.pushButton.pressed.connect(lambda: table_loader(self.ui.tableWidget))
+            self.ui.pushButton.clicked.connect(lambda: show_add_processes_gui(self))
+            self.ui.pbDebug.clicked.connect(lambda: show_debug_gui(self))
+
+            print("is visible:")
+            print(self.ui.pbDebug.isVisible())
+
+            if C.DEBUG:
+                self.ui.pbDebug.setVisible(True)
+            else:
+                self.ui.pbDebug.setVisible(False)
+
+            self.show()
         except Exception as ex:
             print_exception(ex)
-
 
 
 class AddProc(QDialog):
@@ -50,11 +70,28 @@ class AddProc(QDialog):
             print_exception(ex)
 
 
+class DebugGui(QDialog):
+    def __init__(self, parent=None):
+        try:
+            super(DebugGui, self).__init__(parent=parent)
+            self.ui = Ui_Dialog()
+            self.ui.setupUi(self)
+
+        except Exception as ex:
+            print_exception(ex)
+
+
+def show_debug_gui(maingui):
+    maingui.dialogDebugGui = DebugGui()
+
+    maingui.dialogDebugGui.exec_()
+
+
 def save_process_data(data):
     """
 
-    @param data:
-    @return:
+    :param data:
+    :return:
     """
     print("add_items_to_settings_table")
     dbhandler.save_data_to_db(data)
@@ -63,8 +100,8 @@ def save_process_data(data):
 def close_add_processes_gui(maingui):
     """
 
-    @param maingui:
-    @return:
+    :param maingui:
+    :return:
     """
     try:
         qtable = maingui.ui.tableProc
@@ -75,7 +112,7 @@ def close_add_processes_gui(maingui):
 
             if chkboxitem.checkState() == 2:
                 print(qtable.item(i, 1).text())
-                processes.append(qtable.item(i, 1).text())
+                processes.append((qtable.item(i, 1).text(), qtable.item(i, 2).text(), 10, 1))
 
                 dbhandler.save_data_to_db(processes)
 
@@ -86,8 +123,8 @@ def close_add_processes_gui(maingui):
 def show_add_processes_gui(maingui):
     """
 
-    @param maingui:
-    @return:
+    :param maingui:
+    :return:
     """
     try:
 
@@ -130,13 +167,6 @@ def show_add_processes_gui(maingui):
     except Exception as ex:
         print_exception(ex)
 
-def load_data():
-    x = 1
-
-
-def save_data():
-    x = 1
-
 
 def change_speed(speed):
     """
@@ -148,7 +178,7 @@ def change_speed(speed):
         #   1 - slow
         #   10 - standard
         #   20 - fast
-        set_mouse_speed = 113   # 0x0071 for SPI_SETMOUSESPEED
+        set_mouse_speed = 113  # 0x0071 for SPI_SETMOUSESPEED
         ctypes.windll.user32.SystemParametersInfoA(set_mouse_speed, 0, speed, 0)
         print("CHANGING SPEED to: " + str(speed))
     except Exception as ex:
@@ -161,7 +191,7 @@ def get_current_speed():
     :return:
     """
     try:
-        get_mouse_speed = 112   # 0x0070 for SPI_GETMOUSESPEED
+        get_mouse_speed = 112  # 0x0070 for SPI_GETMOUSESPEED
         speed = ctypes.c_int()
         acceleration = ctypes.c_int()
         ctypes.windll.user32.SystemParametersInfoA(get_mouse_speed, 0, ctypes.byref(speed), 0)
@@ -174,7 +204,7 @@ def get_current_speed():
 def proper_close():
     """
     Closes the application gracefully and resetting changed Windows settings
-    @return: None
+    :return: None
     """
     try:
         change_speed(standard_speed)
@@ -186,7 +216,7 @@ def proper_close():
 def get_process_list():
     """
     Queries the WMI to get all the running processes w/o those containing "Windows" inside the path
-    @return: list
+    :return: list
     """
     try:
         sql_query = """SELECT Name, ExecutablePath FROM Win32_Process WHERE ExecutablePath IS NOT NULL 
@@ -195,7 +225,7 @@ def get_process_list():
         for p in c.query(sql_query):
             exe += p.Name + " | " + p.ExecutablePath + "\n"
 
-        #print("\n".join(sorted(set(exe.split("\n")))))
+        # print("\n".join(sorted(set(exe.split("\n")))))
         return "\n".join(sorted(set(exe.split("\n"))))
     except Exception as ex:
         print_exception(ex)
@@ -204,8 +234,8 @@ def get_process_list():
 def table_loader(qtable):
     """
     Responsible for loading data into the QTableWidget
-    @param qtable: QTableWidget
-    @return: None
+    :param qtable: QTableWidget
+    :return: None
     """
     try:
 
@@ -259,18 +289,12 @@ if __name__ == "__main__":
 
     atexit.register(proper_close)
 
-    #get_process_list()
+    # get_process_list()
 
     app = QApplication(sys.argv)
     w = MainAppWindow()
     w.show()
     sys.exit(app.exec_())
-
-
-
-
-
-
 
 # while True:
 #     _, pid = win32process.GetWindowThreadProcessId(win32gui.GetForegroundWindow())
@@ -283,7 +307,3 @@ if __name__ == "__main__":
 #         change_speed(standard_speed)
 #
 #     time.sleep(1)
-
-
-
-

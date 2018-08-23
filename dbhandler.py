@@ -1,16 +1,26 @@
-import linecache
-import sqlite3
-import os
-from PyQt5.QtWidgets import QDialog, QApplication
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-import sys
-import ctypes
-from DebugGui import Ui_Dialog
-import sys
-import messagebox
+# /==============================================.=====================================================================\
+# |  Filename:  dbhandler.py                     |   Created at:  2018-08-01                                           |
+# |----------------------------------------------'---------------------------------------------------------------------|
+# |  Project:        mousens                                                                                           |
+# |  Author:         https://github.com/kylhuk                                                                         |
+# |  Last updated:   August 2018                                                                                       |
+# |  License:        GNU GPLv3                                                                                         |
+# |                                                                                                                    |
+# \====================================================================================================================/
 
-DB_FILE_NAME = 'settings.db'
+import linecache
+import os
+import sqlite3
+import sys
+
+from PyQt5.QtWidgets import QDialog, QApplication
+
+import constants as C
+import messagebox
+from DebugGui import Ui_Dialog
+
+
+#DB_FILE_NAME = 'settings.db'
 
 
 class AppWindow(QDialog):
@@ -28,7 +38,7 @@ class AppWindow(QDialog):
 
 def open_connection():
     try:
-        connection = sqlite3.connect(DB_FILE_NAME)
+        connection = sqlite3.connect(C.DB_FILE_NAME)
         connection.isolation_level = None
         return connection
     except Exception as ex:
@@ -49,10 +59,10 @@ def create_default_db_structure():
 
         connection.close()
 
-        messagebox.MsgBox("Database " + DB_FILE_NAME + " was created successfully.", title="Success")
+        messagebox.MsgBox("Database " + C.DB_FILE_NAME + " was created successfully.", title="Success")
 
     except sqlite3.OperationalError:
-        messagebox.MsgBox("Database " + DB_FILE_NAME + " already exists!", style=(
+        messagebox.MsgBox("Database " + C.DB_FILE_NAME + " already exists!", style=(
                 messagebox.MB_ICONWARNING | messagebox.MB_OK), title="Warning")
     except Exception as ex:
         print_exception(ex)
@@ -60,11 +70,11 @@ def create_default_db_structure():
 
 def drop_db():
     try:
-        os.remove(DB_FILE_NAME)
+        os.remove(C.DB_FILE_NAME)
 
-        messagebox.MsgBox("Database " + DB_FILE_NAME + " was removed successfully.", title="Success")
+        messagebox.MsgBox("Database " + C.DB_FILE_NAME + " was removed successfully.", title="Success")
     except FileNotFoundError:
-        messagebox.MsgBox("The file " + DB_FILE_NAME + " was not found. Was it removed already?", style=(
+        messagebox.MsgBox("The file " + C.DB_FILE_NAME + " was not found. Was it removed already?", style=(
                 messagebox.MB_ICONWARNING | messagebox.MB_OK), title="Warning")
     except Exception as ex:
         print_exception(ex)
@@ -79,12 +89,8 @@ def save_data_to_db(data):
         c = connection.cursor()
 
         for i in range(0, listsize):
-            #sqlquery = "SELECT * FROM settings WHERE processname = \"" + data[i] + "\""
-            sqlquery = '''SELECT COUNT(processname) AS processname FROM settings WHERE processname = "firefox.exe"'''
-
-            print("SQLQUERY: " + sqlquery)
-
-            print("iteration: " + str(i))
+            sqlquery = "SELECT COUNT(processname) AS processname FROM settings WHERE processname = \"" + data[i][0] + "\""
+            #sqlquery = '''SELECT COUNT(processname) AS processname FROM settings WHERE processname = "firefox.exe"'''
 
             c.execute(sqlquery)
             connection.commit()
@@ -93,7 +99,10 @@ def save_data_to_db(data):
             processcount = result[0][0]
 
             if processcount == 0:
-                sqlquery = '''INSERT INTO settings VALUES ("firefox.exe","C:\path_to_firefox",10,1)'''
+                sqlquery = '''INSERT INTO settings VALUES ("{}","{}",{},{})'''.format(data[i][0],
+                                                                                      data[i][1],
+                                                                                      data[i][2],
+                                                                                      data[i][3])
 
                 c.execute(sqlquery)
                 connection.commit()

@@ -1,3 +1,8 @@
+#
+# source: https://gist.github.com/guineawheek/567500ff9a02be11b671
+# author: guineawheek
+#
+
 from __future__ import print_function
 import ctypes
 MB_ABORTRETRYIGNORE = 2
