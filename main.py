@@ -8,6 +8,8 @@
 # |                                                                                                                    |
 # \====================================================================================================================/
 
+# TODO: update database on every interaction
+
 import fnmatch
 
 import wmi
@@ -44,8 +46,7 @@ class MainAppWindow(QMainWindow):
             self.ui.pushButton.clicked.connect(lambda: show_add_processes_gui(self))
             self.ui.pbDebug.clicked.connect(lambda: show_debug_gui(self))
 
-            print("is visible:")
-            print(self.ui.pbDebug.isVisible())
+            load_data_into_table(self)
 
             if C.DEBUG:
                 self.ui.pbDebug.setVisible(True)
@@ -79,6 +80,27 @@ class DebugGui(QDialog):
 
         except Exception as ex:
             print_exception(ex)
+
+
+def load_data_into_table(maingui):
+    try:
+        qtable = maingui.ui.tableWidget
+
+        qtable.setColumnCount(4)
+        qtable.setRowCount(2)   # TODO: SELECT Query to get COUNT of Processes
+
+        qtable.setHorizontalHeaderLabels(["Active", "Process Name", "Path", "Sensitivity"])
+
+        qtable.setColumnWidth(0, 20)
+        qtable.setColumnWidth(1, 100)
+        qtable.setColumnWidth(2, 500)
+        qtable.setColumnWidth(3, 100)
+
+        # TODO: On inactive, set row font to gray
+
+
+    except Exception as ex:
+        print_exception(ex)
 
 
 def show_debug_gui(maingui):
