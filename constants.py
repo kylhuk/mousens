@@ -16,4 +16,4 @@ DB_FILE_NAME: str = 'settings.db'
 
 
 # Activates / Deactivates debug mode (True/False)
-DEBUG: bool = True
+DEBUG: bool = False

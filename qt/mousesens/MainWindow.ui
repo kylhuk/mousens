@@ -66,7 +66,7 @@
       <bool>false</bool>
      </property>
     </widget>
-    <widget class="QPushButton" name="pushButton">
+    <widget class="QPushButton" name="pbAdd">
      <property name="geometry">
       <rect>
        <x>430</x>
@@ -79,7 +79,7 @@
       <string>Add</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="pushButton_2">
+    <widget class="QPushButton" name="pbRemove">
      <property name="geometry">
       <rect>
        <x>510</x>

@@ -17,9 +17,9 @@ import ctypes
 import atexit
 
 from PyQt5 import QtGui
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QCheckBox
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal, QObject
 
 from MainWindow import Ui_MainWindow
 from AddProc import Ui_dialogAddProc
@@ -40,13 +40,13 @@ class MainAppWindow(QMainWindow):
             self.ui = Ui_MainWindow()
             self.ui.setupUi(self)
 
-            # self.ui.createDB.clicked.connect(create_default_db_structure)
-            # self.ui.dropDB.clicked.connect(drop_db)
-            # self.ui.pushButton.pressed.connect(lambda: table_loader(self.ui.tableWidget))
-            self.ui.pushButton.clicked.connect(lambda: show_add_processes_gui(self))
-            self.ui.pbDebug.clicked.connect(lambda: show_debug_gui(self))
-
             load_data_into_table(self)
+
+            self.ui.pbAdd.clicked.connect(lambda: show_add_processes_gui(self))
+            self.ui.pbDebug.clicked.connect(lambda: show_debug_gui(self))
+            self.ui.tableWidget.cellChanged.connect(lambda: update_db(self))
+            self.ui.tableWidget.itemSelectionChanged.connect(lambda: selection_changed(self))
+            self.ui.pbRemove.clicked.connect(lambda: remove_data(self))
 
             if C.DEBUG:
                 self.ui.pbDebug.setVisible(True)
@@ -56,6 +56,50 @@ class MainAppWindow(QMainWindow):
             self.show()
         except Exception as ex:
             print_exception(ex)
+
+
+def remove_data(maingui):
+    try:
+        qtable = maingui.ui.tableWidget
+
+        #print("length: " + str(len(qtable.selectedItems())))
+
+        if len(qtable.selectedItems()) > 0:
+            selecteditem = qtable.selectedItems()[0]
+            indexes = qtable.selectedIndexes()
+            currentrows = qtable.currentRow()
+
+            print("selecteditem: " + str(selecteditem))
+            print("indexes: " + str(indexes))
+            print("len of indexes: " + str(len(indexes)))
+
+            for i in range(0, len(indexes)):
+                print("Remove row id: " + str(indexes[i].row()))
+
+                qtable.removeRow(indexes[i].row())
+
+
+    except Exception as ex:
+        print_exception(ex)
+
+
+def selection_changed(maingui):
+    try:
+        qtable = maingui.ui.tableWidget
+
+        #print("length: " + str(len(qtable.selectedItems())))
+
+        if len(qtable.selectedItems()) > 0:
+            selecteditem = qtable.selectedItems()[0]
+            indexes = qtable.selectedIndexes()
+            currentrows = qtable.currentRow()
+
+            # for i in range(0, len(indexes)):
+                # print(indexes[i].row())
+
+
+    except Exception as ex:
+        print_exception(ex)
 
 
 class AddProc(QDialog):
@@ -82,21 +126,64 @@ class DebugGui(QDialog):
             print_exception(ex)
 
 
+def update_db(maingui):
+    try:
+        qtable = maingui.ui.tableWidget
+
+        processname = qtable.item(qtable.currentRow(), 0).text()
+        sensitivity = int(qtable.item(qtable.currentRow(), 2).text())
+
+        if sensitivity > 20:
+            qtable.item(qtable.currentRow(), 2).setText("20")
+            sensitivity = 20
+
+        dbhandler.update_data(processname, "sens", sensitivity)
+
+    except Exception as ex:
+        print_exception(ex)
+
+
 def load_data_into_table(maingui):
     try:
         qtable = maingui.ui.tableWidget
 
-        qtable.setColumnCount(4)
-        qtable.setRowCount(2)   # TODO: SELECT Query to get COUNT of Processes
+        qtable.setColumnCount(3)
+        qtable.setRowCount(1)
 
-        qtable.setHorizontalHeaderLabels(["Active", "Process Name", "Path", "Sensitivity"])
+        qtable.setHorizontalHeaderLabels(["Process Name", "Path", "Sensitivity"])
 
-        qtable.setColumnWidth(0, 20)
-        qtable.setColumnWidth(1, 100)
-        qtable.setColumnWidth(2, 500)
-        qtable.setColumnWidth(3, 100)
+        qtable.setColumnWidth(0, 100)
+        qtable.setColumnWidth(1, 300)
+        qtable.setColumnWidth(2, 100)
 
-        # TODO: On inactive, set row font to gray
+        sqlresult = dbhandler.get_data()
+
+        qtable.setRowCount(len(sqlresult))
+
+        for i in range(0, len(sqlresult)):
+            processname = QTableWidgetItem()
+            processpath = QTableWidgetItem()
+            sensitivity = QTableWidgetItem()
+
+            processname.setText(str(sqlresult[i][0]))
+            processpath.setText(str(sqlresult[i][1]))
+            sensitivity.setText(str(sqlresult[i][2]))
+
+            processname.setFlags(Qt.ItemIsEnabled)
+            processpath.setFlags(Qt.ItemIsEnabled)
+
+            qtable.setItem(i, 0, processname)
+            qtable.setItem(i, 1, processpath)
+            qtable.setItem(i, 2, sensitivity)
+
+            # active.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
+            #
+            # if sqlresult[i][3] == 1:
+            #     active.setCheckState(Qt.Checked)
+            # else:
+            #     active.setCheckState(Qt.Unchecked)
+            #
+            # qtable.setItem(i, 0, active)
 
 
     except Exception as ex:
@@ -185,6 +272,8 @@ def show_add_processes_gui(maingui):
             qtable.setItem(r, 0, chkboxitem)
 
         maingui.dialogAddProc.exec_()
+
+        load_data_into_table(maingui)
 
     except Exception as ex:
         print_exception(ex)

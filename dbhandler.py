@@ -36,6 +36,44 @@ class AppWindow(QDialog):
             print_exception(ex)
 
 
+def update_data(processname, column, newvalue):
+    try:
+        connection = open_connection()
+        c = connection.cursor()
+
+        sqlquery = '''UPDATE settings
+                        SET {} = {}
+                        WHERE processname = "{}"'''.format(column, newvalue, processname)
+
+        c.execute(sqlquery)
+        connection.commit()
+
+        connection.close()
+
+    except Exception as ex:
+        print_exception(ex)
+
+
+def get_data():
+    try:
+        connection = open_connection()
+        c = connection.cursor()
+
+        sqlquery = "SELECT processname, path, sens, active FROM settings"
+
+        c.execute(sqlquery)
+        connection.commit()
+
+        result = c.fetchall()
+
+        connection.close()
+
+        return result
+
+    except Exception as ex:
+        print_exception(ex)
+
+
 def open_connection():
     try:
         connection = sqlite3.connect(C.DB_FILE_NAME)
@@ -111,6 +149,7 @@ def save_data_to_db(data):
 
     except Exception as ex:
         print_exception(ex)
+
 
 def print_exception(ex):
     exc_type, exc_obj, tb = sys.exc_info()
