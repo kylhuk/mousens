@@ -10,25 +10,22 @@
 
 # TODO: update database on every interaction
 
-import fnmatch
+import atexit
+import ctypes
+import linecache
+import sys
 
 import wmi
-import ctypes
-import atexit
-
-from PyQt5 import QtGui
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QCheckBox
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem
-from PyQt5.QtCore import Qt, pyqtSignal, QObject
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox
 
-from MainWindow import Ui_MainWindow
+import constants as C
+import dbhandler
+import messagebox
 from AddProc import Ui_dialogAddProc
 from DebugGui import Ui_Dialog
-import sys
-import messagebox
-import linecache
-import dbhandler
-import constants as C
+from MainWindow import Ui_MainWindow
 
 c = wmi.WMI()
 
@@ -62,7 +59,7 @@ def remove_data(maingui):
     try:
         qtable = maingui.ui.tableWidget
 
-        #print("length: " + str(len(qtable.selectedItems())))
+        # print("length: " + str(len(qtable.selectedItems())))
 
         if len(qtable.selectedItems()) > 0:
             selecteditem = qtable.selectedItems()[0]
@@ -78,7 +75,6 @@ def remove_data(maingui):
 
                 qtable.removeRow(indexes[i].row())
 
-
     except Exception as ex:
         print_exception(ex)
 
@@ -87,7 +83,7 @@ def selection_changed(maingui):
     try:
         qtable = maingui.ui.tableWidget
 
-        #print("length: " + str(len(qtable.selectedItems())))
+        # print("length: " + str(len(qtable.selectedItems())))
 
         if len(qtable.selectedItems()) > 0:
             selecteditem = qtable.selectedItems()[0]
@@ -96,7 +92,6 @@ def selection_changed(maingui):
 
             # for i in range(0, len(indexes)):
                 # print(indexes[i].row())
-
 
     except Exception as ex:
         print_exception(ex)
@@ -184,7 +179,6 @@ def load_data_into_table(maingui):
             #     active.setCheckState(Qt.Unchecked)
             #
             # qtable.setItem(i, 0, active)
-
 
     except Exception as ex:
         print_exception(ex)
@@ -304,7 +298,7 @@ def get_current_speed():
     try:
         get_mouse_speed = 112  # 0x0070 for SPI_GETMOUSESPEED
         speed = ctypes.c_int()
-        acceleration = ctypes.c_int()
+        # acceleration = ctypes.c_int()
         ctypes.windll.user32.SystemParametersInfoA(get_mouse_speed, 0, ctypes.byref(speed), 0)
         print("GET CURRENT SPEED: " + str(speed.value))
         return speed.value
@@ -353,19 +347,19 @@ def table_loader(qtable):
         qtable.setColumnCount(3)
         qtable.setRowCount(5)
 
-        for r in range(0, 5):
-            for c in range(0, 2):
+        for row in range(0, 5):
+            for col in range(0, 2):
                 stringitem = QTableWidgetItem()
 
-                stringitem.setText("Test r: " + str(r) + " c: " + str(c))
+                stringitem.setText("Test r: " + str(row) + " c: " + str(col))
 
-                qtable.setItem(r, c, stringitem)
+                qtable.setItem(row, col, stringitem)
 
             chkboxitem = QTableWidgetItem()
             chkboxitem.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
             chkboxitem.setCheckState(Qt.Checked)
 
-            qtable.setItem(r, 2, chkboxitem)
+            qtable.setItem(row, 2, chkboxitem)
 
     except Exception as ex:
         print_exception(ex)
